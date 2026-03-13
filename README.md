@@ -102,6 +102,17 @@ This will:
 docker ps
 ```
 
+```bash
+docker cp massive_data/00_master_massive_data_generation.sql postgres-18:/tmp
+docker cp massive_data postgres-18:/tmp
+# inside the container
+su postgres
+cd /tmp
+psql -U chinook -d chinook -f /tmp/00_master_massive_data_generation.sql
+\q
+```
+
+
 You should see a running container named `postgres-18` with port `32200` exposed.
 
 ### 3.3. Connect to PostgreSQL

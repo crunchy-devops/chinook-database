@@ -1,0 +1,30 @@
+global:
+  # Configuration pour l'envoi d'emails (via votre relais Postfix Docker)
+  smtp_smarthost: 'mailpit:1025'
+  smtp_from: 'alertmanager@votre-domaine.com'
+  smtp_require_tls: false # Désactivé car le relais Docker gère le TLS vers Gmail
+
+route:
+  # Comment les alertes sont groupées
+  group_by: ['alertname', 'instance', 'severity']
+  group_wait: 30s      # Temps d'attente pour grouper plusieurs alertes similaires
+  group_interval: 5m   # Temps avant d'envoyer un nouveau groupe
+  repeat_interval: 3h  # Temps avant de renvoyer une alerte déjà notifiée
+
+  receiver: 'default-receiver' # Destinataire par défaut
+
+  routes:
+    - match:
+        action: 'cleanup'
+      receiver: 'disk-cleanup-webhook'
+      continue: true # Permet d'envoyer AUSSI
+
+
+receivers:
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'votre-nom@proton.me'
+        send_resolved: true # Notifie aussi quand l'alerte est terminée (Vert)
+  - name: 'disk-cleanup-webhook'
+    webhook_configs:
+      - url: 'http://grafana:32197/hooks/cleanup-disk'

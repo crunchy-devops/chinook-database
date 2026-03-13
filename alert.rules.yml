@@ -1,0 +1,25 @@
+groups:
+  - name: temperature_alerts
+    rules:
+        - alert: TemperatureTropBasse
+        #
+          expr: pg_current_temp_value < 0
+
+        # ANTI-FLAPPING : L'alerte doit être vraie pendant 4 minutes
+        # avant de passer de l'état 'PENDING' à 'FIRING'
+          for: 4m
+
+          annotations:
+            summary: "Temperature negative {{ $labels.datname }}"
+            description: "La temperature est {{ $value }} negative {{ $labels.datname }} depuis plus de 4 minutes."
+
+  - name: disk_limit
+    rules:
+        - alert: DiskOfLimit
+          expr: (1 - node_filesystem_avail_bytes{mountpoint="/etc/hosts"} / node_filesystem_size_bytes{mountpoint="/etc/hosts"}) * 100  > 50
+
+          for: 10m
+
+          annotations:
+            summary: "Disk limit reached {{ $labels.instance }}"
+            description: "The disk usage is {{ $value }}% on {{ $labels.instance }} since more than 10 minutes."
