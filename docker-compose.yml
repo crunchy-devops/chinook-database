@@ -1,6 +1,5 @@
 volumes:
-  postgres-data:
-
+  postgres-chinook-data:
 
 
 services:
@@ -8,18 +7,19 @@ services:
   # PostgreSQL Container
   # https://hub.docker.com/_/postgres
   # Commands:
-  #   psql -U chinook chinook
+  #   psql -d chinook -U chinook -W
   #----------------------------------------------------------------------------
-  postgres:
-    image: postgres:15.3-alpine
-    container_name: postgres-chinook
+
+  postgres-18:
+    image: postgres:18.3-alpine3.23
+    container_name: postgres-18
     shm_size: "2gb"
     environment:
       POSTGRES_USER: chinook
       POSTGRES_PASSWORD: password_772
       POSTGRES_DB: chinook
     ports:
-      - "32195:5432"
+      - "32200:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-chinook-data:/var/lib/postgresql/data
     restart: unless-stopped
