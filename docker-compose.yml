@@ -7,6 +7,10 @@ volumes:
     name: prometheus_data
   grafana-storage:
     name: grafana-storage
+  loki-data:
+    name: loki-data
+  promtail-position:
+    name: promtail-position
 
 networks:
   ascent:
@@ -29,6 +33,10 @@ services:
       POSTGRES_USER: chinook
       POSTGRES_PASSWORD: password_772
       POSTGRES_DB: chinook
+    labels:
+      logging: "promtail"
+      logging_job: "postgresql"
+      logging_env: "production"
     ports:
       - "32200:5432"
     volumes:
@@ -155,5 +163,31 @@ services:
     restart: unless-stopped
     depends_on:
       - prometheus
+    networks:
+      - ascent
+  loki:
+    image: grafana/loki:3.6.6
+    container_name: loki
+    ports:
+      - "32460:3100"
+    command:
+      - "-config.file=/etc/loki/local-config.yaml"
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    networks:
+      - ascent
+
+  # 4. Promtail (Agent de collecte des logs)
+  promtail:
+    image: grafana/promtail:latest
+    user: root
+    container_name: promtail
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:Z
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml
+      - promtail-position:/tmp
+    command: -config.file=/etc/promtail/config.yml
     networks:
       - ascent
