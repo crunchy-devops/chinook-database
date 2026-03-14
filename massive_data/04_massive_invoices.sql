@@ -148,6 +148,16 @@ END $$;
 
 COMMIT;
 
+-- Add purchase_date column and populate it based on BillingPostalCode and InvoiceId
+ALTER TABLE invoice
+    ADD COLUMN IF NOT EXISTS purchase_date DATE;
+
+UPDATE invoice
+SET purchase_date = (
+    DATE '2018-01-01'
+    + ((billing_postal_code::int + invoice_id) % 1826) * INTERVAL '1 day'
+)::date;
+
 /*******************************************************************************
    Generate Massive Invoice Lines (5,000,000 invoice lines)
 ********************************************************************************/
