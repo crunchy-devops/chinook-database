@@ -26,7 +26,9 @@ services:
   #----------------------------------------------------------------------------
 
   postgres-18:
-    image: postgres:18.3-alpine3.23
+    #build: postgres-18/.
+    #image: postgres:18.3-alpine3.23
+    image: systemdevformations/post18:1.0
     container_name: postgres-18
     shm_size: "2gb"
     environment:
@@ -40,8 +42,9 @@ services:
     ports:
       - "32200:5432"
     volumes:
-      - ./postgresql.conf:/var/lib/postgresql/18/dockerpostgresql.conf
+      - ./postgresql.conf:/var/lib/postgresql/18/docker/postgresql.conf
       - postgres-chinook-data:/var/lib/postgresql/18/docker
+      - opt/postgresql/log:/var/log/postgresql
     restart: unless-stopped
     networks:
       - ascent
