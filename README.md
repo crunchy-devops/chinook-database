@@ -1,11 +1,12 @@
-# Chinook Database – Docker Quickstart
+# Chinook Database – PostgreSQL package + Monitoring
 
-This repository provides a ready‑to‑use PostgreSQL instance for the Chinook sample database, using Docker and `docker-compose`. It also includes SQL scripts in `massive_data` to load a large dataset into the database.
+This repository provides a ready‑to‑use PostgreSQL instance for the Chinook sample database, **installed from AlmaLinux packages (PostgreSQL 18)**. It also includes SQL scripts in `massive_data` to load a large dataset into the database, and a `docker-compose.yml` stack for **Grafana/Prometheus/Loki monitoring only** (no PostgreSQL container).
 
 This README focuses on:
 
-- **Installing Docker on AlmaLinux** using the steps from `ALMA.md`.
-- **Starting the PostgreSQL container** with `docker-compose.yml`.
+- **Installing Docker on AlmaLinux** using the steps from `ALMA.md` (for the monitoring stack).
+- **Installing and configuring PostgreSQL 18 from packages** on AlmaLinux (port `32420`, logs with rotation).
+- **Starting the monitoring stack** (Grafana/Prometheus/Alertmanager/Loki/Promtail, etc.) with `docker-compose.yml`.
 - **Loading massive data** into the `chinook` database using the SQL scripts in `massive_data`.
 
 ---
@@ -70,65 +71,52 @@ docker run -d -p 32125:8000 -p 32126:9443 --name portainer --restart=always \
 
 ---
 
-## 3. Start PostgreSQL with docker-compose
-### 3.1 Pre-requisites
+## 3. Install and Configure PostgreSQL 18 from Packages
 
+PostgreSQL is now installed **directly on AlmaLinux via packages**, not via Docker.
 
-
-The file `docker-compose.yml` defines a PostgreSQL container with the `chinook` database preconfigured.
-
-Key settings from `docker-compose.yml`:
-
-- **Image**: `postgres:18.3-alpine3.23`
-- **Container name**: `postgres-18`
-- **Port mapping**: `32200:5432` (host:container)
-- **Database name**: `chinook`
-- **User**: `chinook`
-- **Password**: `password_772`
-
-### 3.1. Start the container
-
-From the root of this repository:
+Follow the steps from `ALMA.md` (section *Start PostgreSQL from package*):
 
 ```bash
-docker compose up -d
+cat /etc/os-release && psql --version
+sudo dnf update
+sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-9-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+sudo dnf -qy module disable postgresql
+sudo dnf install -y postgresql18-server postgresql18
+sudo /usr/pgsql-18/bin/postgresql-18-setup initdb
+sudo systemctl start postgresql-18
+sudo systemctl enable postgresql-18
+sudo systemctl status postgresql-18
 ```
 
-This will:
-
-- Create a named volume `postgres-chinook-data`.
-- Start the `postgres-18` container in the background.
-
-### 3.2. Verify the container
+Then configure PostgreSQL (port and access) as described in `ALMA.md`:
 
 ```bash
-docker ps
+sudo vi /var/lib/pgsql/18/data/postgresql.conf
+## change listen_addresses and port
+listen_addresses = '*'
+port = 32420
+
+sudo vi /var/lib/pgsql/18/data/pg_hba.conf
+## Example: allow password auth from your network
+host all all 0.0.0.0/0  scram-sha-256
+
+## restart postgresql
+sudo systemctl restart postgresql-18
+sudo netstat -plnt | grep postgres
 ```
+
+> **Logs & rotation**: PostgreSQL writes its logs according to your `postgresql.conf` configuration. On AlmaLinux, you can combine this with system log rotation (e.g. `logrotate`) to ensure that PostgreSQL logs are **rotated** and do not grow indefinitely.
+
+### 3.1. Connect to PostgreSQL
+
+From the AlmaLinux host or another machine with network access:
 
 ```bash
-docker cp massive_data/00_master_massive_data_generation.sql postgres-18:/tmp
-docker cp massive_data postgres-18:/tmp
-# inside the container
-su postgres
-cd /tmp
-psql -U chinook -d chinook -f /tmp/00_master_massive_data_generation.sql
-
+psql -h <hostname-or-ip> -p 32420 -U chinook -d chinook
 ```
 
-
-You should see a running container named `postgres-18` with port `32200` exposed.
-
-### 3.3. Connect to PostgreSQL
-
-Using `psql` from your host:
-
-```bash
-psql -h localhost -p 32200 -U chinook -d chinook
-```
-
-When prompted for a password, use:
-
-- **Password**: `password_772`
+Adapt the `chinook` user, database name and password to your actual configuration.
 
 ---
 
@@ -148,7 +136,7 @@ The directory `massive_data` contains SQL scripts to insert a large dataset into
 
 Before running these scripts, ensure:
 
-- The `postgres-18` container is **running**.
+- The PostgreSQL service `postgresql-18` is **running** on port `32420`.
 - The `chinook` database **schema already exists** (created using the standard Chinook schema scripts).
 
 ### 4.1. Run the master script (recommended)
@@ -156,24 +144,22 @@ Before running these scripts, ensure:
 The simplest approach is to run the master script, which orchestrates the other scripts:
 
 ```bash
-psql -h localhost -p 32200 -U chinook -d chinook -f massive_data/00_master_massive_data_generation.sql
+psql -h localhost -p 32420 -U chinook -d chinook -f massive_data/00_master_massive_data_generation.sql
 ```
 
-You will be prompted for the `chinook` user password:
-
-- **Password**: `password_772`
+You will be prompted for the `chinook` user password.
 
 ### 4.2. Run scripts individually (alternative)
 
 If you prefer to run the scripts one by one, execute them in the following order:
 
 ```bash
-psql -h localhost -p 32200 -U chinook -d chinook -f massive_data/00_setup_base_data.sql
-psql -h localhost -p 32200 -U chinook -d chinook -f massive_data/01_massive_artists_albums.sql
-psql -h localhost -p 32200 -U chinook -d chinook -f massive_data/02_massive_tracks.sql
-psql -h localhost -p 32200 -U chinook -d chinook -f massive_data/03_massive_customers_employees.sql
-psql -h localhost -p 32200 -U chinook -d chinook -f massive_data/04_massive_invoices.sql
-psql -h localhost -p 32200 -U chinook -d chinook -f massive_data/05_massive_playlists.sql
+psql -h localhost -p 32420 -U chinook -d chinook -f massive_data/00_setup_base_data.sql
+psql -h localhost -p 32420 -U chinook -d chinook -f massive_data/01_massive_artists_albums.sql
+psql -h localhost -p 32420 -U chinook -d chinook -f massive_data/02_massive_tracks.sql
+psql -h localhost -p 32420 -U chinook -d chinook -f massive_data/03_massive_customers_employees.sql
+psql -h localhost -p 32420 -U chinook -d chinook -f massive_data/04_massive_invoices.sql
+psql -h localhost -p 32420 -U chinook -d chinook -f massive_data/05_massive_playlists.sql
 ```
 
 After running these scripts, the `chinook` database will be populated with a large dataset suitable for performance and load testing.
@@ -190,7 +176,7 @@ From the repository root:
 docker compose down
 ```
 
-This stops and removes the containers but **keeps the data volume** `postgres-chinook-data`.
+This stops and removes the **monitoring containers** (Grafana, Prometheus, Alertmanager, Loki, Promtail, Mailpit, etc.) but **keeps their data volumes**.
 
 ### 5.2. Remove data volume (optional)
 
@@ -200,15 +186,15 @@ If you want to remove all persisted data and start fresh:
 docker compose down -v
 ```
 
-This will delete the `postgres-chinook-data` volume and all data stored in it.
+This will delete the monitoring stack volumes and all data stored in them (Grafana dashboards, Prometheus TSDB, Loki logs index, etc.).
 
 ---
 
 ## 6. Summary
 
 - **Install Docker** (see section 2 for AlmaLinux steps).
-- **Start PostgreSQL** with `docker compose up -d` using `docker-compose.yml`.
-- **Connect to the database** on `localhost:32200` using `chinook/password_772`.
-- **Load data** using the SQL scripts in `massive_data`, preferably via `00_master_massive_data_generation.sql`.
+- **Install and configure PostgreSQL 18 from packages** on AlmaLinux (port `32420`, logs with rotation).
+- **Start the monitoring stack** with `docker compose up -d` using `docker-compose.yml` (Grafana, Prometheus, Loki, etc.).
+- **Connect to the database** on `localhost:32420` (or the configured host/port) and **load data** using the SQL scripts in `massive_data`, preferably via `00_master_massive_data_generation.sql`.
 
-You now have a Dockerized Chinook PostgreSQL database with massive sample data ready for experiments and testing.
+You now have a PostgreSQL 18 Chinook database installed from packages, with massive sample data and a Docker-based monitoring stack ready for experiments and testing.
