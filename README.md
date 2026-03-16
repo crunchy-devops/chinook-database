@@ -71,6 +71,9 @@ docker run -d -p 32125:8000 -p 32126:9443 --name portainer --restart=always \
 ---
 
 ## 3. Start PostgreSQL with docker-compose
+### 3.1 Pre-requisites
+
+
 
 The file `docker-compose.yml` defines a PostgreSQL container with the `chinook` database preconfigured.
 
@@ -109,7 +112,7 @@ docker cp massive_data postgres-18:/tmp
 su postgres
 cd /tmp
 psql -U chinook -d chinook -f /tmp/00_master_massive_data_generation.sql
-\q
+
 ```
 
 
