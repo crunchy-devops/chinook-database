@@ -123,10 +123,8 @@ Adapt the `chinook` user, database name and password to your actual configuratio
 ## 4. Load Massive Data into Chinook
 
 The directory `massive_data` contains SQL scripts to insert a large dataset into the `chinook` database. The scripts are designed to be run **in order**.
-
+00_master_massive_data_generation.sql is present in the current project directory.
 `massive_data/` contains (among others):
-
-- `00_master_massive_data_generation.sql`
 - `00_setup_base_data.sql`
 - `01_massive_artists_albums.sql`
 - `02_massive_tracks.sql`
@@ -144,7 +142,7 @@ Before running these scripts, ensure:
 The simplest approach is to run the master script, which orchestrates the other scripts:
 
 ```bash
-psql -h localhost -p 32420 -U chinook -d chinook -f massive_data/00_master_massive_data_generation.sql
+psql -h localhost -p 32420 -U chinook -d chinook -f  00_master_massive_data_generation.sql
 ```
 
 You will be prompted for the `chinook` user password.

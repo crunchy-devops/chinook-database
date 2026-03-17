@@ -21,6 +21,12 @@ sudo usermod -aG docker $USER
 id
 docker ps
 ```
+## docker compose
+```shell
+sudo curl -L "https://github.com/docker/compose/releases/download/v5.0.1/docker-compose-linux-x86_64"  -o  /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+
 ## Portainer
 ```shell
 docker volume create portainer_data
