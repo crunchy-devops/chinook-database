@@ -24,4 +24,5 @@ _ReSharper.*
 .vs/
 EnvDTE.dll
 id_rsa
+.env
 

@@ -49,13 +49,26 @@ sudo systemctl status postgresql-18
  ## Configuration PostgreSQL
 ```shell
 sudo vi /var/lib/pgsql/18/data/postgresql.conf
-## change listen_addresse and port
+## change listen_adresse and port
 listen_addresses = '*'
 port = 32420
 sudo vi /var/lib/pgsql/18/data/pg_hba.conf
-## change host all all all md5
+## change host all all all scram-sha-256
 host all all 0.0.0.0/0  scram-sha-256
 ## restart postgresql
 sudo systemctl restart postgresql-18
 sudo netstat -plnt | grep postgres
+```
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+CREATE EXTENSION IF NOT EXISTS pgstattuple;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+```
+
+## 3. Check PostgreSQL Chinook table size
+```sql
+SELECT table_name, pg_size_pretty(pg_total_relation_size(table_name::regclass))
+FROM information_schema.tables
+WHERE table_schema = 'public'
+ORDER BY pg_total_relation_size(table_name::regclass) DESC;
 ```

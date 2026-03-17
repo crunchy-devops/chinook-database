@@ -665,6 +665,8 @@ ORDER BY start_time;
 -- Clean up
 DROP FUNCTION IF EXISTS log_generation_progress(TEXT, TEXT, BIGINT, TEXT, TEXT);
 
+
+
 DO $$
 BEGIN
     RAISE NOTICE '';
