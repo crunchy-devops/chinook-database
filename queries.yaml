@@ -1,0 +1,9 @@
+pg_version_info:
+  query: "SELECT current_setting('server_version') as version, current_setting('server_version_num')::numeric as version_num"
+  metrics:
+    - version:
+        usage: "LABEL"
+        description: "Version de PostgreSQL en texte"
+    - version_num:
+        usage: "GAUGE"
+        description: "Version de PostgreSQL en format numérique"
