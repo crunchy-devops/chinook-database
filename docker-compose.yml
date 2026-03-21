@@ -22,8 +22,8 @@ services:
     image: postgres:18-alpine3.23
     container_name: postgres-db
     environment:
-      POSTGRES_DB: grafana
-      POSTGRES_USER: admin
+      POSTGRES_DB: chinook
+      POSTGRES_USER: chinook
       POSTGRES_PASSWORD: password_772
     ports:
       - "32420:5432"
