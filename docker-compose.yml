@@ -150,7 +150,7 @@ services:
       - "--extend.query-path=/etc/postgres_exporter/queries.yaml"
     environment:
       #DATA_SOURCE_URI: "34.163.61.189:32420/chinnok?sslmode=disable"
-      DATA_SOURCE_NAME: "postgresql://${POSTGRES_EXPORTER_USER}:${POSTGRES_EXPORTER_PASSWORD}@${POSTGRES_EXPORTER_HOST}:${POSTGRES_EXPORTER_PORT}/${POSTGRES_EXPORTER_DB}?sslmode=${POSTGRES_EXPORTER_SSLMODE}"
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_EXPORTER_USER}:${POSTGRES_EXPORTER_PASSWORD}@${POSTGRES_EXPORTER_HOST}:${POSTGRES_EXPORTER_PORT}/${POSTGRES_EXPORTER_DB}?sslmode=disable"
       DATA_SOURCE_USER: chinook
       DATA_SOURCE_PASS: password_772
     ports:
