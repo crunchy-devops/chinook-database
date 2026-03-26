@@ -197,6 +197,7 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - ./promtail-config.yml:/etc/promtail/config.yml
       - promtail-position:/tmp
+      - postgres-log:/var/log/postgresql:ro
     command: -config.file=/etc/promtail/config.yml
     networks:
       - ascent

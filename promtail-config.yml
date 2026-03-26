@@ -11,49 +11,47 @@ clients:
 
 scrape_configs:
   - job_name: postgresql
+    static_configs:
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
         refresh_interval: 5s
-        filters:
-          # Cibler uniquement les containers avec le label logging=promtail
-          - name: label
-            values: [ "logging=promtail" ]
     relabel_configs:
-      # Récupérer les labels Docker comme labels Loki
-      - source_labels: [ __meta_docker_container_label_logging_job ]
-        target_label: job
-
-      - source_labels: [ __meta_docker_container_label_logging_env ]
-        target_label: env
-
-      - source_labels: [ __meta_docker_container_name ]
-        regex: '/(.*)'
+      - source_labels: [__meta_docker_container_name]
+        regex: '/postgres-db'
         target_label: container
-
-      - source_labels: [ __meta_docker_container_id ]
-        target_label: container_id
-
+      - replacement: /var/log/postgresql/*.csv
+        target_label: __path__
 
     pipeline_stages:
-      # Ré-assembler les requêtes multi-lignes (EXPLAIN, requêtes longues)
       - multiline:
-          firstline: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}'
-          max_wait_time: 3s
+           firstline: '^\d{4}-\d{2}-\d{2}'
+           max_wait_time: 3s
 
-      # Parser les champs clés du log PostgreSQL
       - regex:
-          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)\s\w+\s\[(?P<pid>\d+)\]\s(?P<user>\S+)@(?P<database>\S+).*?duration:\s(?P<duration_ms>[\d\.]+)\s.*?statement:\s(?P<statement>.*)'
+          expression: >
+            ^(?P<log_time>[^,]+),
+            (?P<user_name>[^,]*),
+            (?P<database_name>[^,]*),
+            (?P<process_id>[^,]*),
+            (?P<connection_from>[^,]*),
+            (?P<session_id>[^,]*),
+            (?P<session_line_num>[^,]*),
+            (?P<command_tag>[^,]*),
+            (?P<session_start_time>[^,]*),
+            (?P<virtual_transaction_id>[^,]*),
+            (?P<transaction_id>[^,]*),
+            (?P<error_severity>[^,]*),
+            (?P<sql_state_code>[^,]*),
+            "(?P<message>(?:[^"]|"")*)",
+            (?P<detail>[^,]*),
+            "(?P<hint>(?:[^"]|"")*)"
 
-      # Extraire la durée comme label numérique
       - labels:
-          user:
-          database:
-          pid:
+          database_name:
+          user_name:
+          error_severity:
+          sql_state_code:
+          process_id:
+          command_tag:
 
-      # Garder uniquement les lignes contenant "duration" (filtrer le bruit)
-      - match:
-          selector: '{job="postgresql"}'
-          stages:
-            - drop:
-                expression: '.*duration:.*'
-                drop_counter_reason: not_slow_query
+

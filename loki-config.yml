@@ -27,6 +27,8 @@ limits_config:
   max_entries_limit_per_query: 500000
   max_streams_per_user: 5000
   ingestion_rate_strategy: global
+  reject_old_samples: false
+  reject_old_samples_max_age: 168h
 
 schema_config:
   configs:
