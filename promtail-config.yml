@@ -29,7 +29,7 @@ scrape_configs:
 
       - regex:
           expression: >
-            ^(?P<log_time>[^,]+),
+            ^(?P<log_time>[^,]*),
             (?P<user_name>[^,]*),
             (?P<database_name>[^,]*),
             (?P<process_id>[^,]*),
@@ -44,7 +44,17 @@ scrape_configs:
             (?P<sql_state_code>[^,]*),
             "(?P<message>(?:[^"]|"")*)",
             (?P<detail>[^,]*),
-            "(?P<hint>(?:[^"]|"")*)"
+            "(?P<hint>(?:[^"]|"")*)",
+            (?P<internal_query>[^,]*),
+            (?P<internal_query_pos>[^,]*),
+            (?P<context>[^,]*),
+            (?P<query>[^,]*),
+            (?P<query_pos>[^,]*),
+            (?P<location>[^,]*),
+            "(?P<application_name>(?:[^"]|"")*)",
+            "(?P<backend_type>(?:[^"]|"")*)",
+            (?P<leader_pid>[^,]*),
+            (?P<query_id>[^,]*)$
 
       - labels:
           database_name:
@@ -53,5 +63,7 @@ scrape_configs:
           sql_state_code:
           process_id:
           command_tag:
+          application_name:
+          backend_type:
 
 
