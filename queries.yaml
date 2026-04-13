@@ -7,3 +7,16 @@ pg_version_info:
     - version_num:
         usage: "GAUGE"
         description: "Version de PostgreSQL en format numérique"
+
+pg_start_time:
+  query: |
+    SELECT
+      current_database() AS datname,
+      EXTRACT(EPOCH FROM pg_postmaster_start_time()) AS start_time_seconds
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - start_time_seconds:
+        usage: "GAUGE"
+        description: "PostgreSQL start time in seconds since epoch"
