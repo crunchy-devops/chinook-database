@@ -46,7 +46,7 @@ sudo systemctl start postgresql-18
 sudo systemctl enable postgresql-18
 sudo systemctl status postgresql-18
 ```
- ## Configuration PostgreSQL
+ ## Configuration PostgreSQL with packages
 ```shell
 sudo vi /var/lib/pgsql/18/data/postgresql.conf
 ## change listen_adresse and port
